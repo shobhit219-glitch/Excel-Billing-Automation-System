@@ -62,8 +62,6 @@ Developed an Excel-based automation system using VBA macros that:
 
 ## 📸 Demo / Screenshots
 
-<img width="1040" height="689" alt="image" src="https://github.com/user-attachments/assets/64aa21ce-8496-4fc4-9d25-27a26994177a" />
-<img width="1458" height="775" alt="image" src="https://github.com/user-attachments/assets/27dc974a-f12e-48df-b933-72334c07c4c8" />
 
 
 
