@@ -1,0 +1,160 @@
+Const PDF_BASE_FOLDER As String = "C:\Users\"
+
+Sub SaveInvoice()
+    Dim wsInv     As Worksheet
+    Dim wsSales   As Worksheet
+    Dim wsCounter As Worksheet
+    Dim wsCs      As Worksheet
+
+    Set wsInv = ThisWorkbook.Sheets("INVOICE")
+    Set wsSales = ThisWorkbook.Sheets("SALES REGISTER")
+    Set wsCounter = ThisWorkbook.Sheets("_INVOICE_COUNTER")
+    Set wsCs = ThisWorkbook.Sheets("COMPANY SUMMARY")
+
+    Dim invNo     As String:  invNo = Trim(wsInv.Range("B6").Text)
+    Dim invDate   As String:  invDate = Format(wsInv.Range("E6").Value, "DD-MMM-YYYY")
+    Dim partyName As String:  partyName = Trim(wsInv.Range("B7").Value)
+    Dim address   As String:  address = Trim(wsInv.Range("B8").Value)
+    Dim grandTotal As Double: grandTotal = wsInv.Range("F33").Value
+
+    If partyName = "" Then
+        MsgBox "Please enter a Party Name in BILL TO (cell B7) before saving.", vbExclamation, "Missing Info"
+        Exit Sub
+    End If
+    If invNo = "" Or invNo = "INV-0001" Then
+        If MsgBox("Invoice number looks like " & invNo & ". Continue saving?", vbYesNo + vbQuestion, "Confirm") = vbNo Then Exit Sub
+    End If
+
+    ' Count total qty
+    Dim qty As Long: qty = 0
+    Dim i As Integer
+    For i = 11 To 30
+        If IsNumeric(wsInv.Cells(i, 4).Value) Then
+            qty = qty + CLng(wsInv.Cells(i, 4).Value)
+        End If
+    Next i
+
+    ' Append row to Sales Register
+    Dim lastRow As Long
+    lastRow = wsSales.Cells(wsSales.Rows.Count, "B").End(xlUp).Row + 1
+    Dim sr As Long: sr = lastRow - 2
+
+    wsSales.Cells(lastRow, 1).Value = sr
+    wsSales.Cells(lastRow, 2).Value = invNo
+    wsSales.Cells(lastRow, 3).Value = partyName
+    wsSales.Cells(lastRow, 4).Value = address
+    wsSales.Cells(lastRow, 5).Value = wsInv.Range("E6").Value
+    wsSales.Cells(lastRow, 5).NumberFormat = "DD-MMM-YYYY"
+    wsSales.Cells(lastRow, 6).Value = qty
+    wsSales.Cells(lastRow, 7).Value = grandTotal
+    wsSales.Cells(lastRow, 7).NumberFormat = "#,##0.00"
+
+    ' Increment invoice counter
+    wsCounter.Range("B1").Value = wsCounter.Range("B1").Value + 1
+
+    ' Build folder path for this company
+    Dim safeName   As String: safeName = MakeSafeFolderName(partyName)
+    Dim folderPath As String: folderPath = PDF_BASE_FOLDER & safeName & "\"
+
+    ' Create base folder if missing
+    On Error Resume Next
+    If Dir(PDF_BASE_FOLDER, vbDirectory) = "" Then MkDir PDF_BASE_FOLDER
+    If Dir(folderPath, vbDirectory) = "" Then MkDir folderPath
+    On Error GoTo 0
+
+    ' Build PDF filename
+    Dim safeDateStr As String: safeDateStr = Format(wsInv.Range("E6").Value, "DDMMMYYYY")
+    Dim safeInvNo   As String: safeInvNo = Replace(invNo, "/", "-")
+    Dim pdfFile     As String: pdfFile = folderPath & safeInvNo & "_" & safeDateStr & ".pdf"
+
+    ' Export invoice as PDF
+    wsInv.ExportAsFixedFormat _
+        Type:=xlTypePDF, _
+        Filename:=pdfFile, _
+        Quality:=xlQualityStandard, _
+        IncludeDocProperties:=True, _
+        IgnorePrintAreas:=False, _
+        OpenAfterPublish:=False
+
+    ' Update Company Summary with clickable folder hyperlink
+    UpdateFolderLink wsCs, partyName, folderPath
+
+    MsgBox "Invoice saved successfully!" & Chr(13) & Chr(13) & _
+           "Invoice No : " & invNo & Chr(13) & _
+           "Party      : " & partyName & Chr(13) & _
+           "PDF saved  : " & pdfFile, vbInformation, "Saved"
+End Sub
+
+' ============================================================
+' UpdateFolderLink — writes hyperlink in Company Summary col F
+' ============================================================
+Private Sub UpdateFolderLink(wsCs As Worksheet, partyName As String, folderPath As String)
+    Dim r As Long
+    For r = 4 To 50
+        Dim cellVal As String
+        cellVal = Trim(wsCs.Cells(r, 2).Value)
+        If cellVal = "" Then Exit For
+        If cellVal = partyName Then
+            ' Remove old hyperlink if any
+            Dim hl As Hyperlink
+            For Each hl In wsCs.Hyperlinks
+                If hl.Range.address = wsCs.Cells(r, 6).address Then
+                    hl.Delete
+                    Exit For
+                End If
+            Next hl
+            ' Add new hyperlink
+            wsCs.Hyperlinks.Add _
+                Anchor:=wsCs.Cells(r, 6), _
+                address:=folderPath, _
+                TextToDisplay:="Open Folder"
+            wsCs.Cells(r, 6).Font.Color = RGB(0, 112, 192)
+            wsCs.Cells(r, 6).Font.Underline = xlUnderlineStyleSingle
+            wsCs.Cells(r, 6).Font.Bold = False
+            Exit Sub
+        End If
+    Next r
+End Sub
+
+' ============================================================
+' MakeSafeFolderName — strips illegal characters
+' ============================================================
+Private Function MakeSafeFolderName(s As String) As String
+    Dim result As String: result = s
+    Dim illegal As Variant
+    illegal = Array("\", "/", ":", "*", "?", Chr(34), "<", ">", "|")
+    Dim c As Variant
+    For Each c In illegal
+        result = Replace(result, c, "_")
+    Next c
+    MakeSafeFolderName = Trim(result)
+End Function
+
+' ============================================================
+' ClearInvoice — resets form for next bill
+' ============================================================
+Sub ClearInvoice()
+    Dim wsInv As Worksheet
+    Set wsInv = ThisWorkbook.Sheets("INVOICE")
+
+    If MsgBox("Clear the invoice form for a new entry?", vbYesNo + vbQuestion, "Confirm Clear") = vbNo Then Exit Sub
+
+    wsInv.Range("B7").Value = ""    ' Party name
+    wsInv.Range("F32").Value = ""   ' Freight charges
+
+    Dim r As Integer
+    For r = 11 To 30
+        wsInv.Cells(r, 2).ClearContents  ' Description
+        wsInv.Cells(r, 3).ClearContents  ' Size/Spec
+        wsInv.Cells(r, 4).ClearContents  ' Qty
+        wsInv.Cells(r, 5).ClearContents  ' Rate
+    Next r
+
+    wsInv.Range("B7").Select
+    MsgBox "Invoice cleared. Ready for new entry.", vbInformation, "Cleared"
+End Sub
+
+
+Sub PrintInvoice()
+    ThisWorkbook.Sheets("INVOICE").PrintOut Copies:=1, Preview:=True
+End Sub
