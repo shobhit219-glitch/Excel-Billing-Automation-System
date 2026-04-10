@@ -64,7 +64,7 @@ Developed an Excel-based automation system using VBA macros that:
 <img width="2514" height="1664" alt="Gemini_Generated_Image_ayva7oayva7oayva" src="https://github.com/user-attachments/assets/2e5f48be-d4f2-4a62-8fc0-f8739871948a" />
 
 * These are edited images of real file since client information was confidential
-<br>
+
 Example:
 - Invoice preview
 - Dashboard view
