@@ -1,5 +1,4 @@
-<img width="2514" height="1664" alt="Gemini_Generated_Image_ayva7oayva7oayva" src="https://github.com/user-attachments/assets/c80ab8f6-fe38-4a21-adcf-56f6a94f512e" /># 📊 Excel Billing Automation System
-
+## Excel Billing Automation System
 An automated billing solution built using Microsoft Excel and VBA to streamline invoice generation, client management, and sales reporting. This is a excel file with certain macros that creates invoice and makes sales report and company wise summary for each and ever client that you own , and also saves every invoice in PDF format automatically after generating it.
 
 ---
