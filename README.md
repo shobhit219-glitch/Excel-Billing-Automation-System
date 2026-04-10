@@ -62,7 +62,10 @@ Developed an Excel-based automation system using VBA macros that:
 
 ## 📸 Demo / Screenshots
 
-(Add screenshots here)
+<img width="1040" height="689" alt="image" src="https://github.com/user-attachments/assets/64aa21ce-8496-4fc4-9d25-27a26994177a" />
+<img width="1458" height="775" alt="image" src="https://github.com/user-attachments/assets/27dc974a-f12e-48df-b933-72334c07c4c8" />
+
+
 
 Example:
 - Invoice preview
@@ -71,4 +74,33 @@ Example:
 
 ---
 
-## 📂 Project Structure
+## 📈 Impact
+
+- Reduced billing time significantly
+- Eliminated manual calculation errors
+- Improved record management and reporting
+
+---
+
+## ⚙️ How to Use
+
+1. Open `billing_system.xlsm`
+2. Enable Macros
+3. Enter client and billing details
+4. Click "Generate Invoice"
+5. Click "Export as PDF"
+
+---
+
+## 🔮 Future Improvements
+
+- Integration with database (SQL / Google Sheets)
+- Email automation for invoice sending
+- Multi-user support
+
+---
+
+## 📌 Author
+
+Shobhit Singh  
+Aspiring Product Manager | AI + Automation Builder
